@@ -22,12 +22,17 @@ MAX_CHARS = 200
 def validate(line: str) -> None:
     if not line.strip():
         raise ValueError("entry is blank")
+    if line != line.strip():
+        raise ValueError("entry has leading or trailing whitespace")
     if len(line) > MAX_CHARS:
         raise ValueError(
             f"entry is {len(line)} characters, over the {MAX_CHARS} limit"
         )
-    if "\n" in line.strip():
+    if "\n" in line:
         raise ValueError("entry must be a single line")
+    words = line.split()
+    if len(words) < 5:
+        raise ValueError("entry is too short to roast anything")
 
 
 def main() -> int:
@@ -37,7 +42,12 @@ def main() -> int:
     path = os.path.join(out_dir, "entry.txt")
     with open(path, "w", encoding="utf-8") as f:
         f.write(LINE)
-    print(f"wrote {path}: {len(LINE)} characters")
+    # Round-trip: the file the judge reads must be exactly the validated line.
+    with open(path, "r", encoding="utf-8") as f:
+        written = f.read()
+    if written != LINE:
+        raise ValueError("written entry differs from the validated line")
+    print(f"wrote {path}: {len(LINE)} characters, {len(LINE.split())} words")
     return 0
 
 
